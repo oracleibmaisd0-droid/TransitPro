@@ -1,0 +1,1524 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
+<title>Tránsitos de carta natal</title>
+<link rel="icon" href="https://raw.githubusercontent.com/IMAGESARCH/Transitopro/refs/heads/main/Tr%C3%A1nsito.png">
+
+<style>
+:root {
+  color-scheme:dark;
+  --bg:#0b1018;
+  --panel:#141e2b;
+  --line:#2b3b4e;
+  --text:#edf3fb;
+  --muted:#9eafc2;
+  --gold:#d9ad58;
+}
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  padding:20px;
+  background:var(--bg);
+  color:var(--text);
+  font-family: 'Product Sans', sans-serif;
+}
+
+main { max-width:1100px; margin:auto; }
+h1 { font-size:27px; margin-bottom:5px; }
+h2 { font-size:18px; }
+p { color:var(--muted); }
+
+.panel {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:15px;
+  padding:18px;
+  margin:16px 0;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:13px;
+}
+
+label {
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  margin-bottom:6px;
+}
+
+input,select {
+  width:100%;
+  padding:11px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:#0b1420;
+  color:white;
+  font:inherit;
+}
+
+button {
+  border:1px solid #43566c;
+  background:#203247;
+  color:white;
+  border-radius:9px;
+  padding:10px 15px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+button.primary {
+  background:#d9ad58;
+  color:#17120a;
+  border:0;
+}
+
+button:disabled { opacity:.5; }
+
+.actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  margin-top:15px;
+}
+
+.status {
+  background:#0b1420;
+  border-radius:9px;
+  padding:12px;
+  margin-top:14px;
+  font-size:13px;
+  border:1px solid transparent;
+}
+
+/* Verde: Cálculo terminado */
+.status.success {
+  color:#00ff00;
+  border-color:#00ff00;
+}
+
+/* Azul: Calculando */
+.status.info {
+  color:#0000ff;
+  border-color:#0000ff;
+}
+
+/* Rojo: Error */
+.status.error {
+  color:#ff0000;
+  border-color:#ff0000;
+}
+
+/* Naranja: Error por falta de datos */
+.status.warning {
+  color:#ff7f00;
+  border-color:#ff7f00;
+}
+
+.suggestions {
+  position:absolute;
+  z-index:5;
+  width:100%;
+  background:#172333;
+  border:1px solid var(--line);
+  border-radius:9px;
+  overflow:hidden;
+}
+
+.suggestions button {
+  display:block;
+  width:100%;
+  text-align:left;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+}
+
+.place-wrap { position:relative; }
+
+.period {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+}
+
+.period input,.period select { width:auto; }
+
+.chart-wrap {
+  overflow-x:auto;
+  background:#09111b;
+  border:1px solid var(--line);
+  border-radius:10px;
+  margin-top:15px;
+}
+
+.chart-wrap svg {
+  display:block;
+  min-width:760px;
+  width:100%;
+}
+
+.legend {
+  font-size:12px;
+  color:var(--muted);
+  margin-top:12px;
+}
+
+.gold { color:var(--gold); }
+
+.empty {
+  padding:25px;
+  color:var(--muted);
+  text-align:center;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+
+/* Área desplazable de aspectos encontrados */
+.results-scroll {
+  max-height:60vh;
+  overflow-y:auto;
+  overflow-x:auto;
+  overscroll-behavior:contain;
+  border-radius:8px;
+}
+
+.results-scroll table {
+  width:100%;
+  min-width:520px;
+}
+
+.results-scroll thead th {
+  position:sticky;
+  top:0;
+  background:var(--panel);
+  z-index:2;
+}
+
+/* Mantener los encabezados visibles al desplazarse */
+#results thead th {
+  position:sticky;
+  top:0;
+  background:var(--panel);
+  z-index:2;
+}
+
+td,th {
+  padding:9px;
+  border-bottom:1px solid var(--line);
+  text-align:left;
+}
+
+th { color:var(--muted); }
+
+@media(max-width:600px) {
+  body { padding:12px; }
+  .panel { padding:13px; }
+  h1 { font-size:23px; }
+}
+
+p {
+    text-align: justify;
+}
+
+h5 {
+    text-align: justify;
+}
+</style>
+</head>
+
+<body>
+<main>
+
+<h1>Tránsitos de carta natal</h1>
+<p>Nuestra herramienta permite visualizar los tránsitos de una carta natal en cualquier fecha. A diferencia de <a href="https://grupovenus.com/">Grupo Venus</a> que tiene un límite de tiempo en el plan gratuito, nuestra herramienta permite visualizar en cualquier fecha totalmente gratis.<br>
+Se muestra 7 días de franja de vista previa, el día seleccionado se mostrará como el día central de una semana. Puede ver el número del día y mes en la parte inferior del visualizador de gráficas.<br>
+Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver la interpretación del mismo en Grupo Venus.<br>Cuando un planeta esté retrógrado, la gráfica aparecerá con la parte inferior blanca.<br><br>Más información en <a href="https://grupovenus.com/ayudagraf.htm">ayuda</a>.
+<br><br>Un proyecto de <a href="https://oracleweb.netlify.app/">Oracle Web</a>.</p>
+
+<section class="panel">
+<h2>Datos de nacimiento</h2>
+
+<div class="grid">
+  <div>
+    <label>Fecha de nacimiento</label>
+    <input type="date" id="birthDate" value=""
+    placeholder="">
+  </div>
+
+  <div>
+    <label>Hora de nacimiento</label>
+    <input type="time" id="birthTime" value="12:00">
+  </div>
+
+  <div class="place-wrap">
+    <label>Lugar de nacimiento</label>
+    <input id="place" value=""
+           placeholder="Ciudad, país" autocomplete="off">
+    <div id="suggestions" class="suggestions" hidden></div>
+  </div>
+</div>
+
+<p id="placeInfo">Al escribir la localidad, debe seleccionar la localidad que aparecen en las sugerencias.<br>Si no conoce la hora de nacimiento, déjelo por defecto, lo que equivale a menos precisión en algunos tránsitos.</p>
+
+<div class="actions">
+  <button class="primary" id="calculate">
+    Calcular tránsitos
+  </button>
+</div>
+
+<div id="status" class="status">
+  <font color="grey">Esperando datos de nacimiento.</font>
+</div>
+</section>
+
+<section class="panel">
+<h2>GRÁFICA DE TRÁNSITOS</h2>
+<h5>El orbe máximo indica desde qué grado se empieza a mostrar el tránsito. Lo recomendable es desde 2°.</h5>
+
+<div class="period">
+  <button id="previous">←</button>
+
+  <div>
+    <label>Fecha central</label>
+    <input type="date" id="startDate">
+  </div>
+
+  <button id="next">→</button>
+
+  <div>
+    <label>Orbe máximo</label>
+    <select id="orb">
+      <option value="1">1°</option>
+      <option value="2" selected>2°</option>
+      <option value="3">3°</option>
+    </select>
+  </div>
+
+  <div>
+    <label>Frecuencia de cálculo</label>
+    <select id="step">
+      <option value="3">Cada 3 horas</option>
+      <option value="6" selected>Cada 6 horas</option>
+      <option value="12">Cada 12 horas</option>
+    </select>
+  </div>
+
+  <div>
+    <label>Estilo de curva</label>
+    <select id="curveStyle">
+      <option value="exact">Exacto</option>
+      <option value="smooth">Suave</option>
+      <option value="verySmooth" selected>Muy suave</option>
+    </select>
+  </div>
+
+  <button id="refresh">Actualizar</button>
+</div>
+
+<div class="legend">
+  <span class="gold">Gráfica</span>
+  &nbsp; · &nbsp;
+  Periodio de 7 días 
+</div>
+
+<div id="chart" class="chart-wrap">
+  <div class="empty">Esperando datos de nacimiento.</div>
+</div>
+
+<p class="legend">
+  Este gráfico solo muestra tránsitos por aspecto.
+<br><br>
+Los astros están ordenados en la gráfica por duración y orden del sistema solar. Los tránsitos menos importantes suelen ser las lunaciones ya que duran unas horas. Los astros más importantes son desde Saturno a Plutón, ya que la duración de tránsito suele ser mayor, éstos influyen profundamente en el nativo. Los tránsitos de media duración; Sol, y desde Mercurio a Júpiter también se toman en cuenta.
+</p>
+</section>
+
+<section class="panel">
+  <h2>Aspectos encontrados</h2>
+
+  <div class="results-scroll">
+    <div id="results" class="empty">
+      Esperando datos de nacimiento.
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* =====================================================
+   CONFIGURACIÓN
+===================================================== */
+
+const API = "https://swiss-ephemeris-engine.onrender.com";
+
+const PLANETS = [
+  "Sun","Moon","Mercury","Venus","Mars",
+  "Jupiter","Saturn","Uranus","Neptune","Pluto"
+];
+
+/* Aspectos: nombre y ángulo exacto */
+const ASPECTS = [
+  { name:"Conjunción", angle:0 },
+  { name:"Sextil", angle:60 },
+  { name:"Cuadratura", angle:90 },
+  { name:"Trígono", angle:120 },
+  { name:"Oposición", angle:180 }
+];
+
+/* El Nodo Norte es natal, no transitante. */
+const NAMES = {
+  Sun:"Sol",
+  Moon:"Luna",
+  Mercury:"Mercurio",
+  Venus:"Venus",
+  Mars:"Marte",
+  Jupiter:"Júpiter",
+  Saturn:"Saturno",
+  Uranus:"Urano",
+  Neptune:"Neptuno",
+  Pluto:"Plutón",
+  ASC:"Ascendente",
+  MC:"Medio Cielo",
+  NorthNode:"Nodo Norte"
+};
+
+/* Color según el planeta que está transitando. */
+const PLANET_COLORS = {
+  Sun:"#F5D32F",
+  Moon:"#A6A6A6",
+  Mercury:"#F28C28",
+  Venus:"#35A853",
+  Mars:"#E53935",
+  Jupiter:"#22C5C5",
+  Saturn:"#C62828",
+  Uranus:"#2878D0",
+  Neptune:"#9146C8",
+  Pluto:"#795548"
+};
+
+/* Códigos utilizados para construir los enlaces de Grupo Venus. */
+const PLANET_CODES = {
+  Sun:"SOL",
+  Moon:"LUN",
+  Mercury:"MER",
+  Venus:"VEN",
+  Mars:"MAR",
+  Jupiter:"JUP",
+  Saturn:"SAT",
+  Uranus:"URA",
+  Neptune:"NEP",
+  Pluto:"PLU",
+  ASC:"ASC",
+  MC:"MC",
+  NorthNode:"NOT"
+};
+
+const ASPECT_CODES = {
+  "Conjunción":"CJC",
+  "Sextil":"SEX",
+  "Cuadratura":"CUA",
+  "Trígono":"TRI",
+  "Oposición":"OPO"
+};
+
+function groupVenusURL(transitName,aspect,natalName) {
+  const code =
+    PLANET_CODES[transitName] +
+    ASPECT_CODES[aspect] +
+    PLANET_CODES[natalName];
+
+  return "https://grupovenus.com/sacainter.asp?tabla=tratsp&cla="+
+    code+"&ORB=0";
+}
+
+const VISUAL_MAX_ORB = 2;
+
+let locationData = null;
+let natal = [];
+let samples = [];
+let calculating = false;
+
+/* =====================================================
+   FUNCIONES GENERALES
+===================================================== */
+
+const $ = id => document.getElementById(id);
+
+function setStatus(message,type="info") {
+  const status=$("status");
+
+  status.textContent=message;
+  status.className="status "+type;
+}
+
+function dateUTC(value) {
+  const [y,m,d] = value.split("-").map(Number);
+  return new Date(Date.UTC(y,m-1,d));
+}
+
+function dateString(date) {
+  return date.toISOString().slice(0,10);
+}
+
+function shiftDate(value,days) {
+  const d = dateUTC(value);
+  d.setUTCDate(d.getUTCDate()+days);
+  return dateString(d);
+}
+
+function normalize(angle) {
+  return ((angle%360)+360)%360;
+}
+
+function difference(a,b) {
+  const d = Math.abs(normalize(a)-normalize(b));
+  return Math.min(d,360-d);
+}
+
+async function requestJSON(url) {
+  const response = await fetch(url);
+
+  if(!response.ok) {
+    throw new Error("Error de API: HTTP "+response.status);
+  }
+
+  return response.json();
+}
+
+/* =====================================================
+   GEOCODIFICACIÓN
+===================================================== */
+
+async function searchLocation(query) {
+  const url =
+    "https://geocoding-api.open-meteo.com/v1/search?name="+
+    encodeURIComponent(query)+
+    "&count=7&language=es&format=json";
+
+  const data = await requestJSON(url);
+
+  return (data.results || []).map(place=>({
+    name:[place.name,place.admin1,place.country]
+      .filter(Boolean).join(", "),
+    latitude:place.latitude,
+    longitude:place.longitude,
+    timezone:place.timezone
+  }));
+}
+
+let searchTimer;
+
+$("place").addEventListener("input",()=>{
+  clearTimeout(searchTimer);
+  locationData=null;
+
+  const query=$("place").value.trim();
+
+  if(query.length<3) {
+    $("suggestions").hidden=true;
+    return;
+  }
+
+  searchTimer=setTimeout(async()=>{
+    try {
+      const places=await searchLocation(query);
+      const box=$("suggestions");
+
+      box.innerHTML="";
+
+      places.forEach(place=>{
+        const button=document.createElement("button");
+        button.textContent=place.name;
+
+        button.onclick=()=>{
+          locationData=place;
+          $("place").value=place.name;
+
+          $("placeInfo").textContent=
+            "Latitud: "+place.latitude+
+            " · Longitud: "+place.longitude+
+            " · Zona: "+place.timezone;
+
+          box.hidden=true;
+        };
+
+        box.appendChild(button);
+      });
+
+      box.hidden=places.length===0;
+
+    } catch(error) {
+      $("placeInfo").textContent=
+        "No se pudo consultar la localidad.";
+    }
+  },400);
+});
+
+/* =====================================================
+   CONVERSIÓN DE HORA LOCAL A UTC
+===================================================== */
+
+function localToUTC(date,time,timezone) {
+  const wanted=date+"T"+time+":00";
+  const wantedUTC=new Date(wanted+"Z");
+
+  let candidate=wantedUTC;
+
+  const formatter=new Intl.DateTimeFormat("en-GB",{
+    timeZone:timezone,
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit",
+    second:"2-digit",
+    hourCycle:"h23"
+  });
+
+  for(let i=0;i<4;i++) {
+    const parts=Object.fromEntries(
+      formatter.formatToParts(candidate)
+        .map(part=>[part.type,part.value])
+    );
+
+    const localShown=
+      parts.year+"-"+parts.month+"-"+parts.day+
+      "T"+parts.hour+":"+parts.minute+":00";
+
+    const shownUTC=new Date(localShown+"Z");
+
+    candidate=new Date(
+      candidate.getTime()+(wantedUTC-shownUTC)
+    );
+  }
+
+  return candidate.toISOString();
+}
+
+/* =====================================================
+   LECTURA DE RESPUESTAS PLANETARIAS
+===================================================== */
+
+function planetMap(json) {
+  const source=
+    json.planets ||
+    json.data?.planets ||
+    json.positions ||
+    json.data?.positions ||
+    json;
+
+  const result={};
+
+  if(Array.isArray(source)) {
+    source.forEach(p=>{
+      const key=p.name || p.planet || p.body;
+      if(key) result[key]=p;
+    });
+  } else if(source && typeof source==="object") {
+    Object.entries(source).forEach(([key,value])=>{
+      if(value && typeof value==="object") {
+        result[key]=value;
+      }
+    });
+  }
+
+  return result;
+}
+
+function readPlanet(map,name) {
+  const aliases={
+    Sun:["Sun","sun","Sol"],
+    Moon:["Moon","moon","Luna"],
+    Mercury:["Mercury","mercury"],
+    Venus:["Venus","venus"],
+    Mars:["Mars","mars"],
+    Jupiter:["Jupiter","jupiter"],
+    Saturn:["Saturn","saturn"],
+    Uranus:["Uranus","uranus"],
+    Neptune:["Neptune","neptune"],
+    Pluto:["Pluto","pluto"],
+
+    NorthNode:[
+      "NorthNode","north_node","northNode",
+      "North Node","TrueNode","True Node",
+      "Node","node","NNode","Nod",
+      "mean_node","MeanNode","Mean Node"
+    ]
+  };
+
+  const p=(aliases[name] || [name])
+    .map(key=>map[key])
+    .find(Boolean);
+
+  if(!p) return null;
+
+  const longitude=Number(
+    p.longitude ?? p.lon ?? p.ecliptic_longitude
+  );
+
+  const speed=Number(
+    p.speed_longitude ??
+    p.longitude_speed ??
+    p.speed ??
+    0
+  );
+
+  if(!Number.isFinite(longitude)) return null;
+
+  return {
+    longitude:normalize(longitude),
+    speed,
+    retrograde:
+      p.is_retrograde ??
+      p.retrograde ??
+      speed<0
+  };
+}
+
+/* =====================================================
+   CÁLCULO DE CARTA NATAL
+===================================================== */
+
+async function calculateNatal() {
+  if(!locationData) {
+    throw new Error(
+      "Selecciona una localidad en las sugerencias."
+    );
+  }
+
+  const date=$("birthDate").value;
+  const time=$("birthTime").value;
+
+if(!date || !time) {
+  setStatus("Faltan datos: completa fecha y hora de nacimiento.","warning");
+  throw new Error("Completa fecha y hora de nacimiento.");
+}
+
+  const utc=localToUTC(
+    date,time,locationData.timezone
+  );
+
+  const planetURL=
+    API+"/v1/planets?datetime="+
+    encodeURIComponent(utc)+"&tropical=true";
+
+  const housesURL=
+    API+"/v1/houses?datetime="+
+    encodeURIComponent(utc)+
+    "&lat="+locationData.latitude+
+    "&lon="+locationData.longitude+
+    "&hsys=P&tropical=true";
+
+  const [planetJSON,houseJSON]=await Promise.all([
+    requestJSON(planetURL),
+    requestJSON(housesURL)
+  ]);
+
+  const map=planetMap(planetJSON);
+  const result=[];
+
+  PLANETS.forEach(name=>{
+    const p=readPlanet(map,name);
+    if(p) result.push({name,...p});
+  });
+
+  /* Nodo Norte: se añade solamente a la carta natal. */
+  const northNode=readPlanet(map,"NorthNode");
+
+  if(northNode) {
+    result.push({
+      name:"NorthNode",
+      ...northNode
+    });
+  }
+
+  const houses=
+    houseJSON.houses ||
+    houseJSON.data?.houses ||
+    houseJSON.data ||
+    houseJSON;
+
+  const asc=Number(
+    houses.ascendant ??
+    houses.ASC ??
+    houses.asc
+  );
+
+  const mc=Number(
+    houses.mc ??
+    houses.MC ??
+    houses.midheaven
+  );
+
+  if(Number.isFinite(asc)) {
+    result.push({
+      name:"ASC",
+      longitude:normalize(asc),
+      speed:0
+    });
+  }
+
+  if(Number.isFinite(mc)) {
+    result.push({
+      name:"MC",
+      longitude:normalize(mc),
+      speed:0
+    });
+  }
+
+  if(!result.length) {
+    throw new Error(
+      "No se reconocieron las posiciones de la API."
+    );
+  }
+
+  return result;
+}
+
+/* =====================================================
+   POSICIONES DE TRÁNSITO
+===================================================== */
+
+async function calculateTransit(datetime) {
+  const url=
+    API+"/v1/planets?datetime="+
+    encodeURIComponent(datetime)+"&tropical=true";
+
+  const json=await requestJSON(url);
+  const map=planetMap(json);
+  const result={};
+
+  /* Solo los planetas definidos en PLANETS transitan. */
+  PLANETS.forEach(name=>{
+    const p=readPlanet(map,name);
+    if(p) result[name]=p;
+  });
+
+  if(!Object.keys(result).length) {
+    throw new Error("Respuesta planetaria no reconocida.");
+  }
+
+  return result;
+}
+
+/* =====================================================
+   CÁLCULO INDEPENDIENTE DE CADA ASPECTO
+===================================================== */
+
+function aspectOrb(transit,natalPosition,aspect) {
+  const separation=difference(
+    transit.longitude,
+    natalPosition.longitude
+  );
+
+  return Math.abs(separation-aspect.angle);
+}
+
+function buildRows(data,maxOrb) {
+  const rows=[];
+
+  PLANETS.forEach(transitName=>{
+    natal.forEach(natalPosition=>{
+      ASPECTS.forEach(aspect=>{
+        const points=data.map((sample,index)=>{
+          const transit=sample.planets[transitName];
+
+          if(!transit) {
+            return {
+              index,
+              orb:Infinity,
+              retrograde:false
+            };
+          }
+
+          return {
+            index,
+            orb:aspectOrb(
+              transit,
+              natalPosition,
+              aspect
+            ),
+            retrograde:!!transit.retrograde
+          };
+        });
+
+        const hasVisiblePoint=points.some(
+          point=>point.orb<=maxOrb
+        );
+
+        if(hasVisiblePoint) {
+          rows.push({
+            id:
+              transitName+"|"+
+              aspect.name+"|"+
+              natalPosition.name,
+            transitName,
+            aspect:aspect.name,
+            natalName:natalPosition.name,
+            points
+          });
+        }
+      });
+    });
+  });
+
+  return rows;
+}
+
+/* =====================================================
+   GRÁFICA
+===================================================== */
+
+/* =====================================================
+   SUAVIZADO VISUAL DE CURVAS
+===================================================== */
+
+function buildCurvePath(segment, x, py, style) {
+  const points = segment.map(point => ({
+    x: x(point.index),
+    y: py(point)
+  }));
+
+  let path = `M ${points[0].x} ${points[0].y}`;
+
+  if (style === "exact") {
+    for (let i = 1; i < points.length; i++) {
+      path += ` L ${points[i].x} ${points[i].y}`;
+    }
+
+    return path;
+  }
+
+  const tension = style === "verySmooth" ? 1 : 0;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i - 1)];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[Math.min(points.length - 1, i + 2)];
+
+    const factor = tension / 6;
+
+    const c1 = {
+      x: p1.x + (p2.x - p0.x) * factor,
+      y: p1.y + (p2.y - p0.y) * factor
+    };
+
+    const c2 = {
+      x: p2.x - (p3.x - p1.x) * factor,
+      y: p2.y - (p3.y - p1.y) * factor
+    };
+
+    const minY = Math.min(p1.y, p2.y);
+    const maxY = Math.max(p1.y, p2.y);
+
+    c1.y = Math.max(minY, Math.min(maxY, c1.y));
+    c2.y = Math.max(minY, Math.min(maxY, c2.y));
+
+    path += ` C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${p2.x} ${p2.y}`;
+  }
+
+  return path;
+}
+
+function renderChart(data,rows,maxOrb) {
+  if(!rows.length) {
+    $("chart").innerHTML=
+      '<div class="empty">No hay aspectos dentro del orbe seleccionado.</div>';
+    return;
+  }
+
+  const width=1100;
+  const left=220;
+  const right=25;
+  const top=35;
+  const rowHeight=75;
+  const bottom=40;
+
+  const plotWidth=width-left-right;
+
+  // Franja inferior para los biorritmos.
+  const bioHeight=85;
+  const height=top+rows.length*rowHeight+bottom+bioHeight;
+  
+  const x=i=>
+    left+i/(data.length-1)*plotWidth;
+
+  const aspectColors = {
+    "Conjunción":"#F5D32F",
+    "Oposición":"#F28C28",
+    "Cuadratura":"#E53935",
+    "Sextil":"#35A853",
+    "Trígono":"#35A853"
+  };
+
+  const natalColors = {
+    ...PLANET_COLORS,
+    ASC:"#888888",
+    MC:"#B0B0B0",
+    NorthNode:"#888888"
+  };
+
+  let svg=
+    `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+
+  /* Definiciones de degradados. */
+  svg+=`<defs>`;
+
+  rows.forEach((row,index)=>{
+    const color=PLANET_COLORS[row.transitName] || "#d9ad58";
+    const directId="direct"+index;
+    const retroId="retro"+index;
+
+    svg+=`
+      <linearGradient id="${directId}"
+        x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".65"/>
+        <stop offset="55%" stop-color="${color}" stop-opacity=".24"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+
+      <linearGradient id="${retroId}"
+        x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".7"/>
+        <stop offset="45%" stop-color="${color}" stop-opacity=".45"/>
+        <stop offset="100%" stop-color="#ffffff" stop-opacity=".88"/>
+      </linearGradient>
+    `;
+  });
+
+  svg+=`</defs>`;
+
+  /* Siete columnas: tres días antes, día central y tres después. */
+  for(let day=0;day<=6;day++) {
+    const xx=left+day/6*plotWidth;
+
+    svg+=`
+      <line x1="${xx}" y1="${top}"
+            x2="${xx}" y2="${height-bottom}"
+            stroke="#263649"
+            stroke-width="1"/>`;
+
+    const sample=data[
+      Math.min(
+        data.length-1,
+        Math.round(day/6*(data.length-1))
+      )
+    ];
+
+    const date=new Date(sample.datetime);
+
+    svg+=`
+      <text x="${xx}" y="${height-bioHeight-12}"
+            text-anchor="middle"
+            fill="${day===3 ? "#F5D32F" : "#9eafc2"}"
+            font-size="${day===3 ? "13" : "12"}"
+            font-weight="${day===3 ? "700" : "400"}">
+        ${String(date.getUTCDate()).padStart(2,"0")}/${String(date.getUTCMonth()+1).padStart(2,"0")}
+      </text>`;
+  }
+
+  rows.forEach((row,rowIndex)=>{
+    const y=top+rowIndex*rowHeight;
+    const base=y+56;
+    const amplitude=45;
+
+    const color=PLANET_COLORS[row.transitName] || "#d9ad58";
+
+    const transitColor =
+      PLANET_COLORS[row.transitName] || "#d9ad58";
+
+    const aspectColor =
+      aspectColors[row.aspect] || "#edf3fb";
+
+    const natalColor =
+      natalColors[row.natalName] || "#edf3fb";
+
+  /* =====================================================
+     BIORRITMOS — Se usa la fecha natal ya existente
+  ===================================================== */
+
+  const birthValue=$("birthDate").value;
+
+  if(birthValue) {
+    const birthUTC=dateUTC(birthValue).getTime();
+
+    const bioCycles=[
+      {
+        name:"Físico",
+        period:23,
+        color:"#E53935"
+      },
+      {
+        name:"Emocional",
+        period:28,
+        color:"#2878D0"
+      },
+      {
+        name:"Mental",
+        period:33,
+        color:"#35A853"
+      }
+    ];
+
+    const bioTop=height-bioHeight+8;
+    const bioMid=bioTop+35;
+    const bioAmplitude=23;
+
+    /* Línea central de referencia. */
+    svg+=`
+      <line
+        x1="${left}"
+        y1="${bioMid}"
+        x2="${width-right}"
+        y2="${bioMid}"
+        stroke="#263649"
+        stroke-width="1"
+        stroke-dasharray="3 4"/>
+    `;
+
+    /* Título de la franja. */
+    svg+=`
+      <text
+        x="10"
+        y="${bioTop+10}"
+        fill="#9eafc2"
+        font-size="11"
+        font-weight="600">
+        BIORRITMOS
+      </text>
+    `;
+
+    const bioValues=data.map(sample=>{
+      const sampleTime=new Date(sample.datetime).getTime();
+      const days=(sampleTime-birthUTC)/86400000;
+
+      const values=bioCycles.map(cycle=>
+        Math.sin(2*Math.PI*days/cycle.period)
+      );
+
+      const average=
+        values.reduce((sum,value)=>sum+value,0)/values.length;
+
+      return {
+        values,
+        average
+      };
+    });
+
+    function bioY(value) {
+      return bioMid-value*bioAmplitude;
+    }
+
+    function bioSmoothPath(points) {
+      if(points.length<2) return "";
+
+      let path=`M ${points[0].x} ${points[0].y}`;
+
+      for(let i=0;i<points.length-1;i++) {
+        const p0=points[Math.max(0,i-1)];
+        const p1=points[i];
+        const p2=points[i+1];
+        const p3=points[Math.min(points.length-1,i+2)];
+
+        const c1={
+          x:p1.x+(p2.x-p0.x)/6,
+          y:p1.y+(p2.y-p0.y)/6
+        };
+
+        const c2={
+          x:p2.x-(p3.x-p1.x)/6,
+          y:p2.y-(p3.y-p1.y)/6
+        };
+
+        path+=` C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${p2.x} ${p2.y}`;
+      }
+
+      return path;
+    }
+
+    bioCycles.forEach((cycle,cycleIndex)=>{
+      const points=bioValues.map((item,index)=>({
+        x:x(index),
+        y:bioY(item.values[cycleIndex])
+      }));
+
+      const path=bioSmoothPath(points);
+
+      svg+=`
+        <text
+          x="10"
+          y="${bioTop+29+cycleIndex*17}"
+          fill="${cycle.color}"
+          font-size="11">
+          ${cycle.name} · ${cycle.period} días
+        </text>
+
+        <path
+          d="${path}"
+          fill="none"
+          stroke="${cycle.color}"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+      `;
+    });
+
+    /* Promedio de los tres ciclos. */
+    const averagePoints=bioValues.map((item,index)=>({
+      x:x(index),
+      y:bioY(item.average)
+    }));
+
+    svg+=`
+      <path
+        d="${bioSmoothPath(averagePoints)}"
+        fill="none"
+        stroke="#B0B0B0"
+        stroke-width="1.5"
+        stroke-dasharray="4 3"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+      <text
+        x="${width-right}"
+        y="${bioTop+10}"
+        text-anchor="end"
+        fill="#B0B0B0"
+        font-size="10">
+        Promedio
+      </text>
+    `;
+  }
+
+    svg+=`
+      <line x1="${left}" y1="${base}"
+            x2="${width-right}" y2="${base}"
+            stroke="#29394b"
+            stroke-width="1"/>`;
+
+    /* Interpretación que enlaza a Grupo Venus. */
+    const link=groupVenusURL(
+      row.transitName,
+      row.aspect,
+      row.natalName
+    );
+
+    svg+=`
+      <a href="${link}"
+         target="_blank"
+         rel="noopener"
+         style="cursor:pointer">
+
+        <text x="10" y="${y+22}"
+              fill="${transitColor}"
+              font-size="12"
+              font-weight="600">
+          ${NAMES[row.transitName]}
+        </text>
+
+        <text x="10" y="${y+39}"
+              font-size="11">
+          <tspan fill="${aspectColor}">
+            ${row.aspect}
+          </tspan>
+          <tspan fill="${natalColor}">
+            ${" " + NAMES[row.natalName]}
+          </tspan>
+        </text>
+      </a>`;
+
+    const py=point=>
+      base-(1-point.orb/VISUAL_MAX_ORB)*amplitude;
+
+    let segment=[];
+    let segmentRetro=null;
+
+    function flushSegment() {
+      if(segment.length<2) {
+        segment=[];
+        segmentRetro=null;
+        return;
+      }
+
+      const gradientId=segmentRetro
+        ? "retro"+rowIndex
+        : "direct"+rowIndex;
+
+const curveStyle = $("curveStyle").value;
+
+const path = buildCurvePath(
+  segment,
+  x,
+  py,
+  curveStyle
+);
+
+      const area=
+        path+
+        ` L ${x(segment[segment.length-1].index)} ${base}`+
+        ` L ${x(segment[0].index)} ${base} Z`;
+
+      svg+=`
+        <path d="${area}"
+              fill="url(#${gradientId})"
+              stroke="none"/>`;
+
+      segment.forEach(point=>{
+        if(point.orb<0.04) {
+          svg+=`
+            <circle cx="${x(point.index)}"
+                    cy="${py(point)}"
+                    r="4"
+                    fill="${color}"
+                    stroke="#0b1018"
+                    stroke-width="1.2"/>`;
+        }
+      });
+
+      segment=[];
+      segmentRetro=null;
+    }
+
+    const visibleLimit=Math.min(
+      maxOrb,
+      VISUAL_MAX_ORB
+    );
+
+    row.points.forEach(point=>{
+      if(point.orb<=visibleLimit) {
+        if(
+          segment.length &&
+          segmentRetro!==point.retrograde
+        ) {
+          flushSegment();
+        }
+
+        if(!segment.length) {
+          segmentRetro=point.retrograde;
+        }
+
+        segment.push(point);
+
+      } else {
+        flushSegment();
+      }
+    });
+
+    flushSegment();
+  });
+
+  svg+="</svg>";
+
+  $("chart").innerHTML=svg;
+}
+
+/* =====================================================
+   TABLA DE RESULTADOS
+===================================================== */
+
+function renderResults(rows) {
+  if(!rows.length) {
+    $("results").innerHTML=
+      '<div class="empty">No se encontraron aspectos.</div>';
+    return;
+  }
+
+  const visibleLimit=Math.min(
+    Number($("orb").value),
+    VISUAL_MAX_ORB
+  );
+
+  const natalColors = {
+    ...PLANET_COLORS,
+    ASC:"#888888",
+    MC:"#B0B0B0",
+    NorthNode:"#888888"
+  };
+
+  $("results").innerHTML=`
+    <table>
+      <thead>
+        <tr>
+          <th>Tránsito</th>
+          <th>Aspecto</th>
+          <th>Posición natal</th>
+          <th>Muestras dentro del orbe</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(row=>`
+          <tr>
+            <td style="color:${PLANET_COLORS[row.transitName] || "#d9ad58"}">
+              ${NAMES[row.transitName]}
+            </td>
+            <td>${row.aspect}</td>
+            <td style="color:${natalColors[row.natalName] || "#edf3fb"}">
+              ${NAMES[row.natalName]}
+            </td>
+            <td>${row.points.filter(p=>
+              p.orb<=visibleLimit
+            ).length}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>`;
+}
+
+/* =====================================================
+   CÁLCULO COMPLETO DEL PERIODO
+===================================================== */
+
+async function calculate() {
+  if(calculating) return;
+
+  calculating=true;
+  $("calculate").disabled=true;
+  $("refresh").disabled=true;
+  $("previous").disabled=true;
+  $("next").disabled=true;
+
+  try {
+    const center=$("startDate").value;
+const step=Number($("step").value);
+const maxOrb=Number($("orb").value);
+
+if(!center) {
+  throw new Error("Selecciona una fecha central.");
+}
+
+setStatus("Calculando posiciones natales…");
+
+natal=await calculateNatal();
+
+if(!locationData) {
+  throw new Error(
+    "Selecciona una localidad en las sugerencias."
+  );
+}
+
+    /*
+      La fecha elegida queda en el centro:
+      3 días anteriores + día central + 3 posteriores.
+    */
+    const periodStart=shiftDate(center,-3);
+    const total=6*24/step;
+    const dates=[];
+
+    for(let i=0;i<=total;i++) {
+      dates.push(
+        new Date(
+          dateUTC(periodStart).getTime()+
+          i*step*3600000
+        )
+      );
+    }
+
+    samples=[];
+
+    /* Peticiones por pequeños lotes. */
+    for(let i=0;i<dates.length;i+=3) {
+      const batch=dates.slice(i,i+3);
+
+      const results=await Promise.all(
+        batch.map(async date=>({
+          datetime:date.toISOString(),
+          planets:await calculateTransit(
+            date.toISOString()
+          )
+        }))
+      );
+
+      samples.push(...results);
+
+      setStatus(
+        "Consultando efemérides: "+
+        samples.length+"/"+dates.length
+      );
+    }
+
+    const rows=buildRows(samples,maxOrb);
+
+    renderChart(samples,rows,maxOrb);
+    renderResults(rows);
+
+setStatus(
+  "Cálculo terminado. "+
+  natal.length+" posiciones natales · "+
+  samples.length+" instantes de tránsito · "+
+  rows.length+" aspectos encontrados.",
+  "success"
+);
+
+} catch(error) {
+  console.error(error);
+
+  const message=error.message || "Error desconocido";
+
+  const missingData =
+    message.includes("Selecciona una localidad") ||
+    message.includes("Completa fecha y hora") ||
+    message.includes("Selecciona una fecha central");
+
+  if(missingData) {
+    setStatus("Faltan datos: "+message,"warning");
+  } else {
+    setStatus("Error: "+message,"error");
+  }
+
+} finally {
+    calculating=false;
+    $("calculate").disabled=false;
+    $("refresh").disabled=false;
+    $("previous").disabled=false;
+    $("next").disabled=false;
+  }
+}
+
+/* =====================================================
+   NAVEGACIÓN TEMPORAL
+===================================================== */
+
+$("calculate").onclick=calculate;
+$("refresh").onclick=calculate;
+
+$("previous").onclick=()=>{
+  if(!$("startDate").value) return;
+
+  $("startDate").value=shiftDate(
+    $("startDate").value,-7
+  );
+
+  if(natal.length) calculate();
+};
+
+$("next").onclick=()=>{
+  if(!$("startDate").value) return;
+
+  $("startDate").value=shiftDate(
+    $("startDate").value,7
+  );
+
+  if(natal.length) calculate();
+};
+
+$("startDate").value=
+  new Date().toISOString().slice(0,10);
+
+</script>
+</body>
+</html>
