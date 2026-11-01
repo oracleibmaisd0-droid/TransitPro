@@ -400,6 +400,14 @@ const ASPECTS = [
   { name:"Oposición", angle:180 }
 ];
 
+const ASPECT_COLORS = {
+  "Conjunción":"#ffff00",
+  "Oposición":"#ff7f00",
+  "Cuadratura":"#ff0000",
+  "Sextil":"#00ff00",
+  "Trígono":"#00ff00"
+};
+
 /* El Nodo Norte es natal, no transitante. */
 const NAMES = {
   Sun:"Sol",
@@ -419,16 +427,16 @@ const NAMES = {
 
 /* Color según el planeta que está transitando. */
 const PLANET_COLORS = {
-  Sun:"#F5D32F",
-  Moon:"#A6A6A6",
-  Mercury:"#F28C28",
-  Venus:"#35A853",
-  Mars:"#E53935",
-  Jupiter:"#22C5C5",
-  Saturn:"#C62828",
-  Uranus:"#2878D0",
-  Neptune:"#9146C8",
-  Pluto:"#795548"
+  Sun:"#00ff00",
+  Moon:"#ffffff",
+  Mercury:"#ff7f00",
+  Venus:"#00ff00",
+  Mars:"#ff0000",
+  Jupiter:"#00ffff",
+  Saturn:"#ff0000",
+  Uranus:"#0000ff",
+  Neptune:"#ff00ff",
+  Pluto:"#EF5F00"
 };
 
 /* Códigos utilizados para construir los enlaces de Grupo Venus. */
@@ -989,9 +997,9 @@ function renderChart(data,rows,maxOrb) {
 
   const natalColors = {
     ...PLANET_COLORS,
-    ASC:"#888888",
-    MC:"#B0B0B0",
-    NorthNode:"#888888"
+    ASC:"#555555",
+    MC:"#555555",
+    NorthNode:"#EFEFEF"
   };
 
   let svg=
@@ -1082,17 +1090,17 @@ function renderChart(data,rows,maxOrb) {
       {
         name:"Físico",
         period:23,
-        color:"#E53935"
+        color:"#ff0000"
       },
       {
         name:"Emocional",
         period:28,
-        color:"#2878D0"
+        color:"#0000ff"
       },
       {
         name:"Mental",
         period:33,
-        color:"#35A853"
+        color:"#00ff00"
       }
     ];
 
@@ -1419,9 +1427,9 @@ function renderResults(rows) {
 
   const natalColors = {
     ...PLANET_COLORS,
-    ASC:"#888888",
-    MC:"#B0B0B0",
-    NorthNode:"#888888"
+    ASC:"#555555",
+    MC:"#555555",
+    NorthNode:"#EFEFEF"
   };
 
   $("results").innerHTML=`
@@ -1440,7 +1448,9 @@ function renderResults(rows) {
             <td style="color:${PLANET_COLORS[row.transitName] || "#d9ad58"}">
               ${NAMES[row.transitName]}
             </td>
-            <td>${row.aspect}</td>
+            <td style="color:${ASPECT_COLORS[row.aspect] || "#edf3fb"}">
+  ${row.aspect}
+</td>
             <td style="color:${natalColors[row.natalName] || "#edf3fb"}">
               ${NAMES[row.natalName]}
             </td>
