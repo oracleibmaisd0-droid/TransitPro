@@ -151,6 +151,25 @@ button:disabled { opacity:.5; }
   gap:10px;
 }
 
+.period > button {
+  margin-top:18px;
+}
+
+.period > button {
+  align-self:center;
+  height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.period > button img {
+  display:block;
+  width:15px;
+  height:15px;
+  object-fit:contain;
+}
+
 .period input,.period select { width:auto; }
 
 .chart-wrap {
@@ -287,24 +306,26 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
 
 <section class="panel">
 <h2>GRÁFICA DE TRÁNSITOS</h2>
-<h5>El orbe máximo indica desde qué grado se empieza a mostrar el tránsito. Lo recomendable es desde 1°.</h5>
+<h5>Periodo 3 días antes y 3 días después de la fecha a mostrar.</h5>
 
 <div class="period">
-  <button id="previous">←</button>
+<button id="previous">
+  <img src="https://img.icons8.com/ffffff/sf-black-filled/10000/back.png" height="15" width="15">
+</button>
 
   <div>
-    <label>Fecha central</label>
+    <label>Fecha a mostrar</label>
     <input type="date" id="startDate">
   </div>
 
-  <button id="next">→</button>
+<button id="next">
+  <img src="https://img.icons8.com/ffffff/sf-black-filled/10000/forward.png" height="15" width="15">
+</button>
 
   <div>
     <label>Orbe máximo</label>
     <select id="orb">
       <option value="1" selected>1°</option>
-      <option value="2">2°</option>
-      <option value="3">3°</option>
     </select>
   </div>
 
