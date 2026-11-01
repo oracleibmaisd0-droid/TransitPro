@@ -336,9 +336,11 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
   <div>
     <label>Frecuencia de cálculo</label>
     <select id="step">
+      <option value="1">Cada hora</option>
       <option value="3">Cada 3 horas</option>
-      <option value="6" Ñ>Cada 6 horas</option>
+      <option value="6">Cada 6 horas</option>
       <option value="12" selected>Cada 12 horas</option>
+      
     </select>
   </div>
 
@@ -367,7 +369,7 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
 <p class="legend">
   Este gráfico solo muestra tránsitos por aspecto.
 <br><br>
-Los astros están ordenados en la gráfica por duración. Los tránsitos menos importantes suelen ser las lunaciones ya que duran unas horas. Los astros más importantes son desde Saturno a Plutón, ya que la duración de tránsito suele ser mayor, éstos influyen profundamente en el nativo. Los tránsitos de media duración; Sol, y desde Mercurio a Júpiter también se toman en cuenta.
+Los astros están ordenados en la gráfica por duración. Los tránsitos menos importantes suelen ser las lunaciones ya que duran unas horas. Los astros más importantes son desde Saturno a Plutón, ya que la duración de tránsito suele ser mayor, éstos influyen profundamente en el nativo. Los tránsitos de media duración; Sol, y desde Mercurio a Júpiter también se toman en cuenta. Si desea ver todas las lunaciones es recomendable seleccionar la opción de frecuencia de actualización cada hora, lo que hará tardar más en cargar los datos y la suavidad de la gráfica disminuirá.
 </p>
 </section>
 
@@ -431,7 +433,7 @@ const NAMES = {
 
 /* Color según el planeta que está transitando. */
 const PLANET_COLORS = {
-  Sun:"#00ff00",
+  Sun:"#ffff00",
   Moon:"#ffffff",
   Mercury:"#ff7f00",
   Venus:"#00ff00",
