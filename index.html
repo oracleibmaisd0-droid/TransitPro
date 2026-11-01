@@ -1300,14 +1300,12 @@ const path = buildCurvePath(
               stroke="none"/>`;
 
       segment.forEach(point=>{
-        if(point.orb<0.04) {
+        if(point.orb<0.01) {
           svg+=`
             <circle cx="${x(point.index)}"
                     cy="${py(point)}"
-                    r="4"
-                    fill="${color}"
-                    stroke="#0b1018"
-                    stroke-width="1.2"/>`;
+                    r="5"
+                    fill="${color}"/>`;
         }
       });
 
