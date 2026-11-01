@@ -287,7 +287,7 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
 
 <section class="panel">
 <h2>GRÁFICA DE TRÁNSITOS</h2>
-<h5>El orbe máximo indica desde qué grado se empieza a mostrar el tránsito. Lo recomendable es desde 2°.</h5>
+<h5>El orbe máximo indica desde qué grado se empieza a mostrar el tránsito. Lo recomendable es desde 1°.</h5>
 
 <div class="period">
   <button id="previous">←</button>
@@ -302,8 +302,8 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
   <div>
     <label>Orbe máximo</label>
     <select id="orb">
-      <option value="1">1°</option>
-      <option value="2" selected>2°</option>
+      <option value="1" selected>1°</option>
+      <option value="2">2°</option>
       <option value="3">3°</option>
     </select>
   </div>
@@ -312,8 +312,8 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
     <label>Frecuencia de cálculo</label>
     <select id="step">
       <option value="3">Cada 3 horas</option>
-      <option value="6" selected>Cada 6 horas</option>
-      <option value="12">Cada 12 horas</option>
+      <option value="6" Ñ>Cada 6 horas</option>
+      <option value="12" selected>Cada 12 horas</option>
     </select>
   </div>
 
@@ -445,7 +445,7 @@ function groupVenusURL(transitName,aspect,natalName) {
     code+"&ORB=0";
 }
 
-const VISUAL_MAX_ORB = 2;
+const VISUAL_MAX_ORB = 1;
 
 let locationData = null;
 let natal = [];
@@ -1035,7 +1035,7 @@ function renderChart(data,rows,maxOrb) {
   rows.forEach((row,rowIndex)=>{
     const y=top+rowIndex*rowHeight;
     const base=y+56;
-    const amplitude=45;
+    const amplitude=70;
 
     const color=PLANET_COLORS[row.transitName] || "#d9ad58";
 
@@ -1299,27 +1299,82 @@ const path = buildCurvePath(
       VISUAL_MAX_ORB
     );
 
-    row.points.forEach(point=>{
-      if(point.orb<=visibleLimit) {
-        if(
-          segment.length &&
-          segmentRetro!==point.retrograde
-        ) {
-          flushSegment();
-        }
 
-        if(!segment.length) {
-          segmentRetro=point.retrograde;
-        }
+let previousPoint=null;
 
-        segment.push(point);
+row.points.forEach(point=>{
+  const visible=point.orb<=visibleLimit;
 
-      } else {
-        flushSegment();
+  if(visible) {
+
+    /* Separar los tramos directos y retrógrados. */
+    if(
+      segment.length &&
+      segmentRetro!==point.retrograde
+    ) {
+      flushSegment();
+    }
+
+    if(!segment.length) {
+      segmentRetro=point.retrograde;
+
+      /* Interpolar el punto exacto de entrada. */
+      if(
+        previousPoint &&
+        Number.isFinite(previousPoint.orb) &&
+        previousPoint.orb>visibleLimit
+      ) {
+        const t=
+          (visibleLimit-previousPoint.orb)/
+          (point.orb-previousPoint.orb);
+
+        const entryIndex=
+          previousPoint.index+
+          t*(point.index-previousPoint.index);
+
+        segment.push({
+          index:entryIndex,
+          orb:visibleLimit,
+          retrograde:point.retrograde
+        });
       }
-    });
+    }
+
+    segment.push(point);
+
+  } else {
+
+    /* Interpolar el punto exacto de salida. */
+    if(
+      segment.length &&
+      previousPoint &&
+      Number.isFinite(previousPoint.orb) &&
+      previousPoint.orb<=visibleLimit &&
+      Number.isFinite(point.orb)
+    ) {
+      const t=
+        (visibleLimit-previousPoint.orb)/
+        (point.orb-previousPoint.orb);
+
+      const exitIndex=
+        previousPoint.index+
+        t*(point.index-previousPoint.index);
+
+      segment.push({
+        index:exitIndex,
+        orb:visibleLimit,
+        retrograde:previousPoint.retrograde
+      });
+    }
 
     flushSegment();
+  }
+
+  previousPoint=point;
+});
+
+flushSegment();
+
   });
 
   svg+="</svg>";
