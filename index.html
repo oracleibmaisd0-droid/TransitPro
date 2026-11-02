@@ -992,6 +992,10 @@ function renderChart(data,rows,maxOrb) {
   
   const x=i=>
     left+i/(data.length-1)*plotWidth;
+    
+      // Posición de las 12:00 del día central.
+  const centerIndex=84/Number($("step").value);
+  const centerX=x(centerIndex);
 
   const aspectColors = {
     "Conjunción":"#F5D32F",
@@ -1035,6 +1039,20 @@ function renderChart(data,rows,maxOrb) {
       </linearGradient>
     `;
   });
+
+  /* Filtro luminoso para las curvas y sus puntos máximos. */
+  svg+=`
+    <filter id="transitGlow"
+            x="-80%" y="-80%"
+            width="260%" height="260%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  `;
 
   svg+=`</defs>`;
 
@@ -1313,6 +1331,21 @@ const path = buildCurvePath(
               fill="url(#${gradientId})"
               stroke="none"/>`;
 
+      // Resplandor de toda la curva cuando se alcanza su máximo.
+      if(glowActive) {
+        svg+=`
+          <path
+            d="${path}"
+            fill="none"
+            stroke="url(#${gradientId})"
+            stroke-width="8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            filter="url(#transitGlow)"
+            opacity="1"/>
+        `;
+      }
+
       segment.forEach(point=>{
         if(point.orb<0.01) {
           svg+=`
@@ -1331,6 +1364,26 @@ const path = buildCurvePath(
       maxOrb,
       VISUAL_MAX_ORB
     );
+    
+        // Localizar el punto de menor orbe de este tránsito.
+    const peakPoint=row.points.reduce((best,point)=>{
+      if(
+        !Number.isFinite(point.orb) ||
+        point.orb>visibleLimit
+      ) {
+        return best;
+      }
+
+      if(!best || point.orb<best.orb) {
+        return point;
+      }
+
+      return best;
+    },null);
+
+    // Comprobar si las 12:00 coinciden con su máximo.
+    const glowActive=peakPoint &&
+      Math.abs(peakPoint.index-centerIndex)<=0.5;
 
 
 let previousPoint=null;
@@ -1408,11 +1461,22 @@ row.points.forEach(point=>{
 
 flushSegment();
 
+// Iluminar el punto máximo del tránsito.
+if(glowActive && peakPoint) {
+  svg+=`
+    <circle
+      cx="${x(peakPoint.index)}"
+      cy="${py(peakPoint)}"
+      r="6"
+      fill="${color}"
+      filter="url(#transitGlow)"
+      opacity="1"/>
+  `;
+}
+
   });
 
 // Línea vertical roja: día central, a las 12:00
-const centerX = x((3 * 24) / Number($("step").value) + 12 / Number($("step").value));
-
 svg += `
   <line
     x1="${centerX}"
