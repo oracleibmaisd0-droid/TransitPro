@@ -385,7 +385,7 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
 <p class="legend">
   Este gráfico solo muestra tránsitos por aspecto.
 <br><br>
-Los astros están ordenados en la gráfica por duración. Los tránsitos menos importantes suelen ser las lunaciones ya que duran unas horas. Los astros más importantes son desde Saturno a Plutón, ya que la duración de tránsito suele ser mayor, éstos influyen profundamente en el nativo. Los tránsitos de media duración; Sol, y desde Mercurio a Júpiter también se toman en cuenta. Si desea ver todas las lunaciones es recomendable seleccionar la opción de frecuencia de actualización cada hora, lo que hará tardar más en cargar los datos y la suavidad de la gráfica disminuirá.
+Los astros están ordenados en la gráfica por duración. Los tránsitos menos importantes suelen ser las lunaciones ya que duran unas horas. Los astros más importantes son desde Saturno a Plutón, ya que la duración de tránsito suele ser mayor, éstos influyen profundamente en el nativo. Los tránsitos de media duración; Sol, y desde Mercurio a Júpiter también se toman en cuenta. Si desea ver todas las lunaciones es recomendable seleccionar la opción de frecuencia de actualización cada hora, lo que hará tardar más en cargar los datos y la suavidad de la gráfica disminuirá. El Nodo Norte no se incluye en esta gráfica.
 </p>
 </section>
 
@@ -703,12 +703,14 @@ function readPlanet(map,name) {
     Neptune:["Neptune","neptune"],
     Pluto:["Pluto","pluto"],
 
-    NorthNode:[
-      "NorthNode","north_node","northNode",
-      "North Node","TrueNode","True Node",
-      "Node","node","NNode","Nod",
-      "mean_node","MeanNode","Mean Node"
-    ]
+NorthNode:[
+  "NorthNode","north_node","northNode",
+  "North Node","TrueNode","True Node",
+  "Node","node","NNode","Nod",
+  "mean_node","MeanNode","Mean Node",
+  "Rahu","rahu","RAHU",
+  "TrueNorthNode","true_north_node"
+]
   };
 
   const p=(aliases[name] || [name])
