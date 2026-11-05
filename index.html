@@ -330,17 +330,35 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
 <h5>Periodo 3 días antes y 3 días después de la fecha a mostrar.</h5>
 
 <div class="period">
-<button id="previous">
-  <img src="https://img.icons8.com/ffffff/sf-black-filled/10000/back.png" height="15" width="15">
+<!-- Retroceder una semana -->
+<button id="previous" title="Retroceder una semana">
+  <img src="https://img.icons8.com/ios-filled/ffffff/10000/double-left.png" hight="10" width="auto">
 </button>
 
-  <div>
-    <label>Fecha a mostrar</label>
-    <input type="date" id="startDate">
-  </div>
+<!-- Retroceder un día -->
+<button id="previousDay" title="Retroceder un día">
+  <img src="https://img.icons8.com/ios-filled//ffffff/10000/back.png" hight="10" width="auto">
+</button>
 
-<button id="next">
-  <img src="https://img.icons8.com/ffffff/sf-black-filled/10000/forward.png" height="15" width="15">
+<!-- Selector de fecha -->
+<div>
+  <label>Fecha a mostrar</label>
+  <input type="date" id="startDate">
+</div>
+
+<!-- Avanzar un día -->
+<button id="nextDay" title="Avanzar un día">
+  <img src="https://img.icons8.com/ios-filled/ffffff/10000/forward--v1.png" hight="10" width="auto">
+</button>
+
+<!-- Avanzar una semana -->
+<button id="next" title="Avanzar una semana">
+  <img src="https://img.icons8.com/ios-filled/ffffff/10000/double-right.png" hight="10" width="auto">
+</button>
+
+<!-- Ir al día actual -->
+<button id="today" title="Ir al día actual">
+  <img src="https://img.icons8.com/ios-glyphs/ffffff/10000/final-state.png" hight="10" width="auto">
 </button>
 
   <div>
@@ -1574,11 +1592,17 @@ function renderResults(rows) {
 async function calculate() {
   if(calculating) return;
 
-  calculating=true;
-  $("calculate").disabled=true;
-  $("refresh").disabled=true;
-  $("previous").disabled=true;
-  $("next").disabled=true;
+calculating=true;
+$("calculate").disabled=true;
+$("refresh").disabled=true;
+
+$("previous").disabled=true;
+$("next").disabled=true;
+
+$("previousDay").disabled=true;
+$("nextDay").disabled=true;
+
+$("today").disabled=true;
 
   try {
     const center=$("startDate").value;
@@ -1670,10 +1694,16 @@ setStatus(
 
 } finally {
     calculating=false;
-    $("calculate").disabled=false;
-    $("refresh").disabled=false;
-    $("previous").disabled=false;
-    $("next").disabled=false;
+$("calculate").disabled=false;
+$("refresh").disabled=false;
+
+$("previous").disabled=false;
+$("next").disabled=false;
+
+$("previousDay").disabled=false;
+$("nextDay").disabled=false;
+
+$("today").disabled=false;
   }
 }
 
@@ -1683,6 +1713,11 @@ setStatus(
 
 $("calculate").onclick=calculate;
 $("refresh").onclick=calculate;
+
+
+/* =====================================================
+   RETROCEDER UNA SEMANA
+===================================================== */
 
 $("previous").onclick=()=>{
   if(!$("startDate").value) return;
@@ -1694,6 +1729,11 @@ $("previous").onclick=()=>{
   if(natal.length) calculate();
 };
 
+
+/* =====================================================
+   AVANZAR UNA SEMANA
+===================================================== */
+
 $("next").onclick=()=>{
   if(!$("startDate").value) return;
 
@@ -1703,6 +1743,51 @@ $("next").onclick=()=>{
 
   if(natal.length) calculate();
 };
+
+
+/* =====================================================
+   RETROCEDER UN DÍA
+===================================================== */
+
+$("previousDay").onclick=()=>{
+  if(!$("startDate").value) return;
+
+  $("startDate").value=shiftDate(
+    $("startDate").value,-1
+  );
+
+  if(natal.length) calculate();
+};
+
+
+/* =====================================================
+   AVANZAR UN DÍA
+===================================================== */
+
+$("nextDay").onclick=()=>{
+  if(!$("startDate").value) return;
+
+  $("startDate").value=shiftDate(
+    $("startDate").value,1
+  );
+
+  if(natal.length) calculate();
+};
+
+/* =====================================================
+   IR AL DÍA ACTUAL
+===================================================== */
+
+$("today").onclick=()=>{
+  $("startDate").value=
+    new Date().toISOString().slice(0,10);
+
+  if(natal.length) calculate();
+};
+
+/* =====================================================
+   FECHA INICIAL
+===================================================== */
 
 $("startDate").value=
   new Date().toISOString().slice(0,10);
