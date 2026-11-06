@@ -404,7 +404,7 @@ Si pulsa sobre el nombre de un aspecto situado en la parte izquierda, podrá ver
 <p class="legend">
   Este gráfico solo muestra tránsitos por aspecto.
 <br><br>
-Los astros están ordenados en la gráfica por duración. Los tránsitos menos importantes suelen ser las lunaciones ya que duran unas horas. Los astros más importantes son desde Saturno a Plutón, ya que la duración de tránsito suele ser mayor, éstos influyen profundamente en el nativo. Los tránsitos de media duración; Sol, y desde Mercurio a Júpiter también se toman en cuenta. Si desea ver todas las lunaciones es recomendable seleccionar la opción de frecuencia de actualización cada hora, lo que hará tardar más en cargar los datos y la suavidad de la gráfica disminuirá.
+Los astros están ordenados en la gráfica por duración. Los tránsitos menos importantes suelen ser las lunaciones ya que duran unas horas. Los astros más importantes son desde Saturno a Plutón, ya que la duración de tránsito suele ser mayor, éstos influyen profundamente en el nativo. Los tránsitos de media duración; Sol, y desde Mercurio a Júpiter también se toman en cuenta. Si desea ver todas las lunaciones es recomendable seleccionar la opción de frecuencia de actualización cada hora, lo que hará tardar más en cargar los datos y la suavidad de la gráfica disminuirá. La línea roja vertical indica el tiempo actual Hora y Día activando el resplandor de un tránsito en su máxima influencia actual si así fuera, para una finalidad orientativa. La línea azul vertical es fija y apunta a las 12 del medio día fuera del día actual, éste no activa el resplandor de cúspide porque no está relacionado con una energía actual.
 </p>
 </section>
 
@@ -1030,9 +1030,25 @@ function renderChart(data,rows,maxOrb) {
   const x=i=>
     left+i/(data.length-1)*plotWidth;
     
-      // Posición de las 12:00 del día central.
-  const centerIndex=84/Number($("step").value);
-  const centerX=x(centerIndex);
+// Indicador temporal: hora actual o referencia de mediodía.
+const selectedDate = $("startDate").value;
+const todayDate = dateString(new Date());
+
+const isToday = selectedDate === todayDate;
+
+const now = new Date();
+
+const currentHour = isToday
+  ? now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
+  : 12;
+
+// El periodo comienza tres días antes.
+const hoursFromStart = 72 + currentHour;
+
+const centerIndex =
+  hoursFromStart / Number($("step").value);
+
+const centerX = x(centerIndex);
 
   const aspectColors = {
     "Conjunción":"#F5D32F",
@@ -1419,8 +1435,8 @@ const path = buildCurvePath(
     },null);
 
     // Comprobar si las 12:00 coinciden con su máximo.
-    const glowActive=peakPoint &&
-      Math.abs(peakPoint.index-centerIndex)<=0.5;
+const glowActive = isToday && peakPoint &&
+  Math.abs(peakPoint.index-centerIndex)<=0.5;
 
 
 let previousPoint=null;
@@ -1513,16 +1529,16 @@ if(glowActive && peakPoint) {
 
   });
 
-// Línea vertical roja: día central, a las 12:00
+// Indicador temporal: rojo en tiempo real, azul en otras fechas.
 svg += `
   <line
     x1="${centerX}"
     y1="0"
     x2="${centerX}"
     y2="${height-bottom-bioHeight}"
-    stroke="#ff0000"
+    stroke="${isToday ? "#ff0000" : "#2196F3"}"
     stroke-width="2"
-    opacity="0.5"
+    opacity="0.65"
   />
 `;
 
