@@ -1007,6 +1007,182 @@ function buildCurvePath(segment, x, py, style) {
   return path;
 }
 
+// RELOJ ONLINE Y ZONA HORARIA DETECTADA POR IP
+let REAL_CLOCK = null;
+
+async function initRealClock() {
+  // 1. Detectar la zona horaria aproximada por IP
+  const geoResponse = await fetch("https://ipapi.co/json/", {
+    cache: "no-store"
+  });
+
+  if (!geoResponse.ok) {
+    throw new Error("No se pudo detectar la zona horaria.");
+  }
+
+  const geoData = await geoResponse.json();
+  const timezone = geoData.timezone;
+
+  if (!timezone) {
+    throw new Error("No se recibió una zona horaria válida.");
+  }
+
+  // 2. Obtener la fecha y hora actuales de esa zona desde Internet
+  const timeResponse = await fetch(
+    `https://worldtime.timezone.io/api/timezone/${encodeURIComponent(timezone)}`,
+    { cache: "no-store" }
+  );
+
+  if (!timeResponse.ok) {
+    throw new Error("No se pudo obtener la hora online.");
+  }
+
+  const timeData = await timeResponse.json();
+  const serverTime = Number(timeData.unixtime) * 1000;
+
+  if (!Number.isFinite(serverTime)) {
+    throw new Error("El servidor no ha devuelto una hora válida.");
+  }
+
+  // Guardar la hora recibida y usar un contador independiente
+  // del reloj del dispositivo para avanzar los segundos.
+  REAL_CLOCK = {
+    timezone,
+    serverTime,
+    performanceStart: performance.now()
+  };
+}
+
+// Devuelve el instante actual según el reloj online sincronizado
+function getRealNow() {
+  if (!REAL_CLOCK) {
+    throw new Error("El reloj online todavía no está sincronizado.");
+  }
+
+  const elapsed = performance.now() - REAL_CLOCK.performanceStart;
+
+  return new Date(REAL_CLOCK.serverTime + elapsed);
+}
+
+// Devuelve las partes de fecha y hora en la zona detectada
+function getRealDateTimeParts() {
+  const now = getRealNow();
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: REAL_CLOCK.timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(now);
+
+  const result = {};
+
+  for (const part of parts) {
+    if (part.type !== "literal") {
+      result[part.type] = Number(part.value);
+    }
+  }
+
+  return result;
+}
+
+// Fecha de hoy en formato YYYY-MM-DD, según la zona detectada
+function getRealDateString() {
+  // Si el reloj online está disponible, utilizarlo.
+  if (REAL_CLOCK) {
+    const p = getRealDateTimeParts();
+
+    return [
+      p.year,
+      String(p.month).padStart(2, "0"),
+      String(p.day).padStart(2, "0")
+    ].join("-");
+  }
+
+  // Si falla el reloj online, utilizar la fecha del dispositivo.
+  const now = new Date();
+
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
+}
+
+// DETECCIÓN DE VPN, PROXY Y TOR
+let VPN_WARNING_ACTIVE = false;
+
+async function detectVPN() {
+  try {
+    const response = await fetch(
+      "https://iplogs.com/v1/check",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          language: navigator.language
+        }),
+        cache: "no-store"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("No se pudo comprobar la conexión");
+    }
+
+    const data = await response.json();
+
+    const detected =
+      data.is_vpn ||
+      data.is_proxy ||
+      data.is_tor ||
+      data.is_relay;
+
+    VPN_WARNING_ACTIVE = Boolean(detected);
+
+    return {
+      detected: VPN_WARNING_ACTIVE,
+      vpn: Boolean(data.is_vpn),
+      proxy: Boolean(data.is_proxy),
+      tor: Boolean(data.is_tor),
+      relay: Boolean(data.is_relay)
+    };
+
+  } catch (error) {
+    console.warn("Verificación VPN no disponible:", error);
+
+    VPN_WARNING_ACTIVE = false;
+
+    return {
+      detected: false,
+      unavailable: true
+    };
+  }
+}
+
+function showVPNWarning(statusElement, result) {
+  if (!result.detected) return;
+
+  let message = "POSIBLE VPN DETECTADA";
+
+  if (result.tor) {
+    message = "POSIBLE CONEXIÓN TOR DETECTADA";
+  } else if (result.proxy && !result.vpn) {
+    message = "POSIBLE PROXY DETECTADO";
+  }
+
+  statusElement.textContent = message;
+  statusElement.className = "status error";
+  statusElement.style.fontWeight = "bold";
+}
+
 function renderChart(data,rows,maxOrb) {
   if(!rows.length) {
     $("chart").innerHTML=
@@ -1032,14 +1208,22 @@ function renderChart(data,rows,maxOrb) {
     
 // Indicador temporal: hora actual o referencia de mediodía.
 const selectedDate = $("startDate").value;
-const todayDate = dateString(new Date());
 
+// Utilizar el reloj online si está sincronizado.
+// Si no está disponible, utilizar el reloj del dispositivo.
+const realParts = REAL_CLOCK
+  ? getRealDateTimeParts()
+  : {
+      hour: new Date().getHours(),
+      minute: new Date().getMinutes(),
+      second: new Date().getSeconds()
+    };
+
+const todayDate = getRealDateString();
 const isToday = selectedDate === todayDate;
 
-const now = new Date();
-
 const currentHour = isToday
-  ? now.getHours() + now.getMinutes()/60 + now.getSeconds()/3600
+  ? realParts.hour + realParts.minute / 60 + realParts.second / 3600
   : 12;
 
 // El periodo comienza tres días antes.
@@ -1153,6 +1337,8 @@ const centerX = x(centerIndex);
 
     const natalColor =
       natalColors[row.natalName] || "#edf3fb";
+
+if(rowIndex===0) {
 
   /* =====================================================
      BIORRITMOS — Se usa la fecha natal ya existente
@@ -1310,6 +1496,8 @@ const centerX = x(centerIndex);
       </text>
     `;
   }
+
+}
 
     svg+=`
       <line x1="${left}" y1="${base}"
@@ -1608,7 +1796,10 @@ function renderResults(rows) {
 async function calculate() {
   if(calculating) return;
 
-calculating=true;
+  const vpnCheckPromise = detectVPN();
+
+  calculating=true;
+
 $("calculate").disabled=true;
 $("refresh").disabled=true;
 
@@ -1684,13 +1875,19 @@ if(!locationData) {
     renderChart(samples,rows,maxOrb);
     renderResults(rows);
 
-setStatus(
-  "Cálculo terminado. "+
-  natal.length+" posiciones natales · "+
-  samples.length+" instantes de tránsito · "+
-  rows.length+" aspectos encontrados.",
-  "success"
-);
+const vpnResult = await vpnCheckPromise;
+
+if (vpnResult.detected) {
+  showVPNWarning($("status"), vpnResult);
+} else {
+  setStatus(
+    "Cálculo terminado. "+
+    natal.length+" posiciones natales · "+
+    samples.length+" instantes de tránsito · "+
+    rows.length+" aspectos encontrados.",
+    "success"
+  );
+}
 
 } catch(error) {
   console.error(error);
@@ -1794,19 +1991,34 @@ $("nextDay").onclick=()=>{
    IR AL DÍA ACTUAL
 ===================================================== */
 
-$("today").onclick=()=>{
-  $("startDate").value=
-    new Date().toISOString().slice(0,10);
+$("today").onclick = () => {
+  $("startDate").value = getRealDateString();
 
   if(natal.length) calculate();
 };
 
 /* =====================================================
-   FECHA INICIAL
+   INICIALIZACIÓN
 ===================================================== */
 
-$("startDate").value=
-  new Date().toISOString().slice(0,10);
+(async function initializePage() {
+  try {
+    await initRealClock();
+
+    $("startDate").value = getRealDateString();
+
+  } catch(error) {
+    console.error("Error al sincronizar el reloj:", error);
+
+    // Utilizar la fecha del dispositivo como alternativa.
+    $("startDate").value = getRealDateString();
+
+    setStatus(
+      "No se pudo sincronizar la fecha y hora online. Se utiliza la fecha del dispositivo.",
+      "warning"
+    );
+  }
+})();
 
 </script>
 </body>
