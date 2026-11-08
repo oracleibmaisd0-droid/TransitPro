@@ -466,6 +466,32 @@ const NAMES = {
   NorthNode:"Nodo Norte"
 };
 
+/* Símbolos astrológicos Unicode */
+const PLANET_SYMBOLS = {
+  Sun:"☉",
+  Moon:"☽",
+  Mercury:"☿",
+  Venus:"♀",
+  Mars:"♂",
+  Jupiter:"♃",
+  Saturn:"♄",
+  Uranus:"♅",
+  Neptune:"♆",
+  Pluto:"♇",
+  ASC:"ASC",
+  MC:"MC",
+  NorthNode:"☊"
+};
+
+/* Símbolos de los aspectos */
+const ASPECT_SYMBOLS = {
+  "Conjunción":"☌",
+  "Sextil":"⚹",
+  "Cuadratura":"□",
+  "Trígono":"△",
+  "Oposición":"☍"
+};
+
 /* Color según el planeta que está transitando. */
 const PLANET_COLORS = {
   Sun:"#ffff00",
@@ -1191,7 +1217,7 @@ function renderChart(data,rows,maxOrb) {
   }
 
   const width=1100;
-  const left=220;
+  const left=175;
   const right=25;
   const top=35;
   const rowHeight=75;
@@ -1505,7 +1531,7 @@ if(rowIndex===0) {
             stroke="#29394b"
             stroke-width="1"/>`;
 
-    /* Interpretación que enlaza a Grupo Venus. */
+        /* Interpretación que enlaza a Grupo Venus. */
     const link=groupVenusURL(
       row.transitName,
       row.aspect,
@@ -1518,21 +1544,28 @@ if(rowIndex===0) {
          rel="noopener"
          style="cursor:pointer">
 
-        <text x="10" y="${y+22}"
+                <!-- Planeta en tránsito -->
+        <text x="10" y="${y+35}"
               fill="${transitColor}"
-              font-size="12"
-              font-weight="600">
-          ${NAMES[row.transitName]}
+              font-size="40"
+              font-weight="600"
+              font-family="'Segoe UI Symbol','Noto Sans Symbols 2',sans-serif">
+          ${PLANET_SYMBOLS[row.transitName]}
         </text>
 
-        <text x="10" y="${y+39}"
-              font-size="11">
+        <!-- Aspecto y planeta natal -->
+        <text x="50" y="${y+35}"
+              font-size="30"
+              font-family="'Segoe UI Symbol','Noto Sans Symbols 2',sans-serif">
+
           <tspan fill="${aspectColor}">
-            ${row.aspect}
+            ${ASPECT_SYMBOLS[row.aspect]}
           </tspan>
-          <tspan fill="${natalColor}">
-            ${" " + NAMES[row.natalName]}
+
+          <tspan dx="3" fill="${natalColor}">
+            ${PLANET_SYMBOLS[row.natalName]}
           </tspan>
+
         </text>
       </a>`;
 
