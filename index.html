@@ -466,30 +466,27 @@ const NAMES = {
   NorthNode:"Nodo Norte"
 };
 
-/* Símbolos astrológicos Unicode */
+/* Archivos SVG de Wikimedia Commons */
 const PLANET_SYMBOLS = {
-  Sun:"☉",
-  Moon:"☽",
-  Mercury:"☿",
-  Venus:"♀",
-  Mars:"♂",
-  Jupiter:"♃",
-  Saturn:"♄",
-  Uranus:"♅",
-  Neptune:"♆",
-  Pluto:"♇",
-  ASC:"ASC",
-  MC:"MC",
-  NorthNode:"☊"
+  Sun:"https://commons.wikimedia.org/wiki/Special:FilePath/Sun_symbol_(fixed_width).svg",
+  Moon:"https://commons.wikimedia.org/wiki/Special:FilePath/Moon_symbol_crescent.svg",
+  Mercury:"https://commons.wikimedia.org/wiki/Special:FilePath/Mercury_symbol.svg",
+  Venus:"https://commons.wikimedia.org/wiki/Special:FilePath/Venus_symbol.svg",
+  Mars:"https://commons.wikimedia.org/wiki/Special:FilePath/Male_symbol.svg",
+  Jupiter:"https://commons.wikimedia.org/wiki/Special:FilePath/Jupiter_symbol.svg",
+  Saturn:"https://commons.wikimedia.org/wiki/Special:FilePath/Saturn_symbol.svg",
+  Uranus:"https://commons.wikimedia.org/wiki/Special:FilePath/Uranus_monogram.svg",
+  Neptune:"https://commons.wikimedia.org/wiki/Special:FilePath/Neptune_symbol.svg",
+  Pluto:"https://upload.wikimedia.org/wikipedia/commons/1/13/Pluto_symbol_%28southern_Europe%29.svg",
+  NorthNode:"https://commons.wikimedia.org/wiki/Special:FilePath/Ascending_node_(fixed_width).svg"
 };
 
-/* Símbolos de los aspectos */
 const ASPECT_SYMBOLS = {
-  "Conjunción":"☌",
-  "Sextil":"⚹",
-  "Cuadratura":"□",
-  "Trígono":"△",
-  "Oposición":"☍"
+  "Conjunción":"https://upload.wikimedia.org/wikipedia/commons/archive/6/64/20240621235311%21Conjunction_symbol.svg",
+  "Sextil":"https://commons.wikimedia.org/wiki/Special:FilePath/Sextile_symbol.svg",
+  "Cuadratura":"https://commons.wikimedia.org/wiki/Special:FilePath/Square_symbol.svg",
+  "Trígono":"https://commons.wikimedia.org/wiki/Special:FilePath/Trine_symbol.svg",
+  "Oposición":"https://upload.wikimedia.org/wikipedia/commons/archive/2/24/20240621234742%21Opposition_symbol.svg",
 };
 
 /* Color según el planeta que está transitando. */
@@ -503,7 +500,8 @@ const PLANET_COLORS = {
   Saturn:"#ff0000",
   Uranus:"#0000ff",
   Neptune:"#ff00ff",
-  Pluto:"#EF5F00"
+  Pluto:"#EF5F00",
+  NorthNode:"#AFAFAF"
 };
 
 /* Códigos utilizados para construir los enlaces de Grupo Venus. */
@@ -530,6 +528,32 @@ const ASPECT_CODES = {
   "Trígono":"TRI",
   "Oposición":"OPO"
 };
+
+/* =====================================================
+   FILTROS SVG DINÁMICOS PARA LOS COLORES
+===================================================== */
+
+function createSVGColorFilter(id,color) {
+  const hex=color.replace("#","");
+
+  const r=parseInt(hex.substring(0,2),16)/255;
+  const g=parseInt(hex.substring(2,4),16)/255;
+  const b=parseInt(hex.substring(4,6),16)/255;
+
+  return `
+    <filter id="${id}" color-interpolation-filters="sRGB">
+      <feColorMatrix
+        type="matrix"
+        values="
+          0 0 0 ${r} 0
+          0 0 0 ${g} 0
+          0 0 0 ${b} 0
+          0 0 0 1 0
+        "
+      />
+    </filter>
+  `;
+}
 
 function groupVenusURL(transitName,aspect,natalName) {
   const code =
@@ -1209,6 +1233,52 @@ function showVPNWarning(statusElement, result) {
   statusElement.style.fontWeight = "bold";
 }
 
+/* =====================================================
+   DIBUJAR SÍMBOLOS PLANETARIOS Y ASPECTOS SVG
+===================================================== */
+
+function svgSymbol(name,x,y,size,type="planet") {
+
+  /* ASC y MC continúan siendo texto. */
+  if(name==="ASC") name="As";
+  if(name==="MC") name="Mc";
+
+  if(name==="As" || name==="Mc") {
+    return `
+      <text
+        x="${x}"
+        y="${y+size*0.75}"
+        fill="#AFAFAF"
+        font-size="${size*0.55}"
+        font-weight="600">
+        ${name}
+      </text>
+    `;
+  }
+
+  const source = type==="aspect"
+    ? ASPECT_SYMBOLS[name]
+    : PLANET_SYMBOLS[name];
+
+  if(!source) return "";
+
+  const filterId = type==="aspect"
+    ? "aspect-"+Object.keys(ASPECT_COLORS).indexOf(name)
+    : "planet-"+name;
+
+  return `
+    <image
+      href="${source}"
+      x="${x}"
+      y="${y}"
+      width="${size}"
+      height="${size}"
+      preserveAspectRatio="xMidYMid meet"
+      filter="url(#${filterId})"
+    />
+  `;
+}
+
 function renderChart(data,rows,maxOrb) {
   if(!rows.length) {
     $("chart").innerHTML=
@@ -1280,6 +1350,24 @@ const centerX = x(centerIndex);
 
   /* Definiciones de degradados. */
   svg+=`<defs>`;
+
+/* Filtros de color para los planetas. */
+Object.entries(PLANET_COLORS).forEach(([planet,color])=>{
+  svg+=createSVGColorFilter(
+    "planet-"+planet,
+    color
+  );
+});
+
+/* Filtros de color para los aspectos. */
+Object.entries(aspectColors).forEach(([aspect,color])=>{
+  const index=Object.keys(aspectColors).indexOf(aspect);
+
+  svg+=createSVGColorFilter(
+    "aspect-"+index,
+    color
+  );
+});
 
   rows.forEach((row,index)=>{
     const color=PLANET_COLORS[row.transitName] || "#d9ad58";
@@ -1544,29 +1632,30 @@ if(rowIndex===0) {
          rel="noopener"
          style="cursor:pointer">
 
-                <!-- Planeta en tránsito -->
-        <text x="10" y="${y+35}"
-              fill="${transitColor}"
-              font-size="40"
-              font-weight="600"
-              font-family="'Segoe UI Symbol','Noto Sans Symbols 2',sans-serif">
-          ${PLANET_SYMBOLS[row.transitName]}
-        </text>
+<!-- Planeta en tránsito SVG -->
+${svgSymbol(
+  row.transitName,
+  10,
+  y+5,
+  40
+)}
 
-        <!-- Aspecto y planeta natal -->
-        <text x="50" y="${y+35}"
-              font-size="30"
-              font-family="'Segoe UI Symbol','Noto Sans Symbols 2',sans-serif">
+<!-- Aspecto SVG -->
+${svgSymbol(
+  row.aspect,
+  52,
+  y+8,
+  27,
+  "aspect"
+)}
 
-          <tspan fill="${aspectColor}">
-            ${ASPECT_SYMBOLS[row.aspect]}
-          </tspan>
-
-          <tspan dx="3" fill="${natalColor}">
-            ${PLANET_SYMBOLS[row.natalName]}
-          </tspan>
-
-        </text>
+<!-- Planeta natal SVG -->
+${svgSymbol(
+  row.natalName,
+  85,
+  y+8,
+  27
+)}
       </a>`;
 
     const py=point=>
